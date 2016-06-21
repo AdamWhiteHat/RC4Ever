@@ -45,3 +45,10 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+
+RC4Ever/bin/*
+RC4Ever/obj/*
+
+RC4EverGUI/bin/*
+RC4EverGUI/obj/*

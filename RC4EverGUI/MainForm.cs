@@ -132,5 +132,13 @@ namespace RC4EverGUI
 				}
 			}
 		}
+
+		private void tbOutput_KeyUp(object sender, KeyEventArgs e)
+		{
+			if (e.Control && e.KeyCode == Keys.A)
+			{
+				tbOutput.SelectAll();
+			}
+		}
 	}
 }

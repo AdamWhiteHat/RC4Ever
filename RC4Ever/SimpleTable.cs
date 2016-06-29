@@ -111,17 +111,22 @@ namespace RC4Ever
 				{
 					if (r != 0)
 					{
-						result.Append('\t'); 
+						result.Append('|');
 					}
-					result.Append(string.Format("{0,3}", _table[q + r]));
+					result.Append(
+						string.Format("{0,3}", _table[q + r])
+						.PadLeft(4)
+						.PadRight(5)
+						);
+
 					r++;
 				}
 				result.AppendLine();
 				result.AppendLine();
 				q += 16;
 			}
-
-			return result.ToString().Trim();
+			
+			return result.ToString().TrimEnd();
 		}
 
 		public Bitmap ToBitmap()
@@ -190,7 +195,7 @@ namespace RC4Ever
 
 		private int Map42ValueTo255(int value)
 		{
- 			return (value * 6) % byte.MaxValue;
+			return (value * 6) % byte.MaxValue;
 		}
 	}
 }

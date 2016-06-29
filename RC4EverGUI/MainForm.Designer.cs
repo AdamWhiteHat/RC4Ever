@@ -28,6 +28,7 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
 			this.btnStep1 = new System.Windows.Forms.Button();
 			this.tbOutput = new System.Windows.Forms.TextBox();
 			this.tbOutBytes = new System.Windows.Forms.TextBox();
@@ -57,15 +58,19 @@
 			// 
 			// tbOutput
 			// 
+			this.tbOutput.Font = new System.Drawing.Font("Consolas", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.tbOutput.Location = new System.Drawing.Point(13, 57);
 			this.tbOutput.Multiline = true;
 			this.tbOutput.Name = "tbOutput";
-			this.tbOutput.Size = new System.Drawing.Size(785, 416);
+			this.tbOutput.Size = new System.Drawing.Size(590, 416);
 			this.tbOutput.TabIndex = 2;
+			this.tbOutput.Text = resources.GetString("tbOutput.Text");
+			this.tbOutput.KeyUp += new System.Windows.Forms.KeyEventHandler(this.tbOutput_KeyUp);
 			// 
 			// tbOutBytes
 			// 
-			this.tbOutBytes.Location = new System.Drawing.Point(804, 318);
+			this.tbOutBytes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.tbOutBytes.Location = new System.Drawing.Point(612, 318);
 			this.tbOutBytes.Multiline = true;
 			this.tbOutBytes.Name = "tbOutBytes";
 			this.tbOutBytes.Size = new System.Drawing.Size(255, 75);
@@ -74,7 +79,8 @@
 			// 
 			// pictureBox
 			// 
-			this.pictureBox.Location = new System.Drawing.Point(803, 57);
+			this.pictureBox.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.pictureBox.Location = new System.Drawing.Point(611, 57);
 			this.pictureBox.Name = "pictureBox";
 			this.pictureBox.Size = new System.Drawing.Size(256, 256);
 			this.pictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -150,7 +156,8 @@
 			// 
 			// tbOutUntoBytes
 			// 
-			this.tbOutUntoBytes.Location = new System.Drawing.Point(804, 398);
+			this.tbOutUntoBytes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.tbOutUntoBytes.Location = new System.Drawing.Point(612, 398);
 			this.tbOutUntoBytes.Multiline = true;
 			this.tbOutUntoBytes.Name = "tbOutUntoBytes";
 			this.tbOutUntoBytes.Size = new System.Drawing.Size(255, 75);
@@ -181,7 +188,7 @@
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(1065, 485);
+			this.ClientSize = new System.Drawing.Size(882, 485);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.btnUndoX);
 			this.Controls.Add(this.tbOutUntoBytes);

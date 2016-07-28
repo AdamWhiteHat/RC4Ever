@@ -8,3 +8,5 @@ Includes 2 variants:
 **NOTE: PROBABLY NOT ACTUALLY SECURE, SO DO NOT TRUST IT!**
 
 This is the base project from which other projects currently in progress are cloned from.
+
+![alt text](https://github.com/AdamRakaska/RC4Ever/blob/master/RC4Ever2.JPG "RC4Ever Screenshot")

@@ -14,7 +14,7 @@ namespace RC4EverGUI
 	public partial class MainForm : Form
 	{
 		private long rounds;
-		private SimpleTable table;
+		private ProbablyInsecureTable table;
 
 		public MainForm()
 		{
@@ -23,8 +23,8 @@ namespace RC4EverGUI
 		}
 
 		private void MainForm_Load(object sender, EventArgs e)
-		{			
-			table = new SimpleTable();
+		{
+			table = new ProbablyInsecureTable("AdAmrAkaskA");
 			ShowTable();
 		}
 
@@ -140,5 +140,5 @@ namespace RC4EverGUI
 				tbOutput.SelectAll();
 			}
 		}
-	}
+			}
 }

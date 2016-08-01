@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace RC4Ever
 {
+	using System.Drawing;
 	using RC4Ever.Key;
 	/// <summary>
 	/// An example of what a more serious attempt at a RC4 variant cipher would look like
@@ -25,18 +26,30 @@ namespace RC4Ever
 		private byte j = 0;		
 		private byte l = 0;
 
+		public ProbablyInsecureTable(string password)
+		{
+			isDisposed = false;
+
+			PrivateKey = new KeyContainer(
+				passwordHash:  Encoding.ASCII.GetBytes(password),
+				roundsPerScramble: 61,
+				secretStartDate: DateTime.UtcNow.ToFileTimeUtc()
+			);
+
+			permutationTable = new byte[TableSize];
+
+			PrivateKey.InitializeSequence(ref permutationTable);
+
+			ShuffleTable();// Finish initializing the table by shuffling it			
+		}
+
 		public ProbablyInsecureTable(KeyContainer privateKey)
 		{
 			isDisposed = false;
 			PrivateKey = privateKey;			
 			permutationTable = new byte[TableSize];
 
-			int counter = 0;
-			foreach (byte index in privateKey.InitializeSequence())
-			{
-				permutationTable[index] = (byte)counter++;
-			}
-						
+			privateKey.InitializeSequence(ref permutationTable);						
 			ShuffleTable();// Finish initializing the table by shuffling it			
 		}
 
@@ -124,6 +137,20 @@ namespace RC4Ever
 
 			return Encoding.ASCII.GetString(cypherBytes.ToArray());
 		}
+
+		public byte NextByte()
+		{
+			if (MoveNext())
+			{
+				return k;
+			}
+			return default(byte);
+		}
+
+		public byte ReverseByte()
+		{
+			throw new NotImplementedException();
+		}
 		
 		public bool MoveNext()
 		{
@@ -148,24 +175,10 @@ namespace RC4Ever
 			return true;
 		}
 
-		//void ShuffleTable(int rounds)
-		//{
-		//	// Use the current state of the table to determine how it is changed
-		//	while (--rounds > 0)
-		//	{
-		//		NextByte();
-		//	}
-		//	k = NextByte();
-		//}
-
-		//public IEnumerable<byte> GetBytes()
-		//{
-		//	while (!isDisposed)
-		//	{
-		//		yield return NextByte();
-		//	}
-		//	yield break;
-		//}
+		public Bitmap ToBitmap()
+		{
+			return Visualizations.ToBitmap(permutationTable);
+		}
 	}
 }
 

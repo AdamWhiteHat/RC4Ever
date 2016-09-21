@@ -47,8 +47,14 @@ Temporary Items
 .apdisk
 
 
+RC4Ever/Protected/bin/*
+RC4Ever/Protected/obj/*
+
 RC4Ever/bin/*
 RC4Ever/obj/*
-
+  
 RC4EverGUI/bin/*
 RC4EverGUI/obj/*
+
+.vs
+*.suo

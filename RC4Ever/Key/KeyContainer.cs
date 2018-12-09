@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
-using System.Collections.Generic;
 
 namespace RC4Ever.Key
 {
-	public sealed class KeyContainer : IDisposable
+    public sealed class KeyContainer : IDisposable
 	{
 		private Key _key;
 		private int _skipCounter;

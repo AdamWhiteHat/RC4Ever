@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 
 namespace RC4Ever
 {
-	using RC4Ever.Key.Internal;
+    using RC4Ever.Key.Internal;
 
-	public class ProtectedBuffer : IDisposable
+    public class ProtectedBuffer : IDisposable
 	{
 		public bool IsSecretDateSet { get; private set; }
 		public bool IsCoprimeSet { get; private set; }

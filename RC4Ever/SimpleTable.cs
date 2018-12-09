@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Drawing;
-using System.Threading.Tasks;
-using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace RC4Ever
 {
-	/// <summary>
-	/// Creates a simple RC4 table which does not permutate initial state and provides methods to help visualize the state of the table.
-	/// </summary>
-	public class SimpleTable : IDisposable
+    /// <summary>
+    /// Creates a simple RC4 table which does not permutate initial state and provides methods to help visualize the state of the table.
+    /// </summary>
+    public class SimpleTable : IDisposable
 	{
 		private byte i;
 		private byte j;

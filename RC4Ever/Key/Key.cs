@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 
 namespace RC4Ever.Key
 {
-	using RC4Ever.Key.Internal;
+    using RC4Ever.Key.Internal;
 
-	internal sealed class Key : IDisposable
+    internal sealed class Key : IDisposable
 	{
 		private bool isDisposed = true;
 

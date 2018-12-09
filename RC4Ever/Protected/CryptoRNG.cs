@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 
 namespace RC4Ever.Key.Internal
 {
-	public sealed class CryptoRNG : IDisposable
+    public sealed class CryptoRNG : IDisposable
 	{
 		private bool IsDisposed = false;
 		private byte[] rngBytes1 = new byte[1];

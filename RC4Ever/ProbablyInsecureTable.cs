@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace RC4Ever
 {
-	using System.Drawing;
-	using RC4Ever.Key;
-	/// <summary>
-	/// An example of what a more serious attempt at a RC4 variant cipher would look like
-	/// </summary>
-	public class ProbablyInsecureTable : IDisposable
+    using System.Drawing;
+    using RC4Ever.Key;
+    /// <summary>
+    /// An example of what a more serious attempt at a RC4 variant cipher would look like
+    /// </summary>
+    public class ProbablyInsecureTable : IDisposable
 	{
 		public static int TableSize = 256;	// Because we are using bytes		
 		

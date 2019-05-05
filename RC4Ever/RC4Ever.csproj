@@ -42,6 +42,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitShuffle.cs" />
+    <Compile Include="ByteBits.cs" />
     <Compile Include="ColorPalette.cs" />
     <Compile Include="Key\Key.cs" />
     <Compile Include="Key\KeyContainer.cs" />

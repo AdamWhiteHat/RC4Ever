@@ -65,8 +65,8 @@ namespace RC4Ever
 
 				SwapIandJ();
 
-				//byte[] shuffledTable = BitShuffle.Interleave(_table);
-				//_table = shuffledTable;
+				byte[] shuffledTable = BitShuffle.Interleave(_table);
+				_table = shuffledTable;
 
 				l = (byte)(_table[i] + _table[j]);
 				k = (byte)_table[l]; //K = S[ S[i] + S[j] ]

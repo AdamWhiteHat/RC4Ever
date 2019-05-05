@@ -19,7 +19,7 @@ namespace RC4EverGUI
 
 		private void MainForm_Load(object sender, EventArgs e)
 		{
-			table = new ProbablyInsecureTable("AdAmrAkaskA");
+			table = new ProbablyInsecureTable("mYpaSSwoRd");
 			ShowTable();
 		}
 

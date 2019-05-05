@@ -6,30 +6,31 @@ using System.Collections.Generic;
 
 namespace RC4Ever
 {
-    /// <summary>
-    /// Creates a simple RC4 table which does not permutate initial state and provides methods to help visualize the state of the table.
-    /// </summary>
-    public class SimpleTable : IDisposable
+	using Key.Internal;
+
+	/// <summary>
+	/// Creates a simple RC4 table which does not permutate initial state and provides methods to help visualize the state of the table.
+	/// </summary>
+	public class SimpleTable : IDisposable
 	{
-		private byte i;
-		private byte j;
-		private byte k;
-		private byte l;
+		public bool IsDisposed { get; private set; }
+		public static int TableSize = byte.MaxValue;  // Because we are using bytes
+
+		private byte i = 0;
+		private byte j = 0;
+		private byte k = 0;
+		private byte l = 0;
 
 		private byte[] _table;
-		public bool IsDisposed { get; private set; }
-		public static int TableSize = 256;	// Because we are using bytes
-		
-		public SimpleTable()
-		{			
-			i = 0;
-			j = 0;
-			k = 0;
-			l = 0;
 
-			_table = Enumerable.Range(0, TableSize).Select(b => (byte)b).ToArray();
-			
+		public SimpleTable()
+		{
 			IsDisposed = false;
+
+			i = 0; j = 0; k = 0; l = 0;
+
+			_table = new byte[TableSize + 1];
+			CryptoRNG.ZeroBuffer(_table);
 		}
 
 		public void Dispose()
@@ -37,12 +38,26 @@ namespace RC4Ever
 			if (!IsDisposed)
 			{
 				IsDisposed = true;
+
+				i = 0;
+				j = 0;
+				k = 0;
+				l = 0;
+
+				CryptoRNG.ZeroBuffer(_table);
+				_table = null;
 			}
+		}
+
+		private void ThrowIfDisposed()
+		{
+			if (IsDisposed) { throw new ObjectDisposedException(nameof(SimpleTable)); }
 		}
 
 		public byte NextByte()
 		{
-			ThrowIfDisposed();			
+			ThrowIfDisposed();
+
 			unchecked // Just roll over on overflow. This is essentially mod 256, since everything is a byte
 			{
 				i++;
@@ -53,10 +68,8 @@ namespace RC4Ever
 				//byte[] shuffledTable = BitShuffle.Interleave(_table);
 				//_table = shuffledTable;
 
-
 				l = (byte)(_table[i] + _table[j]);
 				k = (byte)_table[l]; //K = S[ S[i] + S[j] ]
-				
 
 				return k;
 			}
@@ -64,7 +77,8 @@ namespace RC4Ever
 
 		public byte ReverseByte()
 		{
-			ThrowIfDisposed();			
+			ThrowIfDisposed();
+
 			unchecked // Just roll over on overflow. This is essentially mod 256, since everything is a byte
 			{
 				List<byte> tableList = _table.ToList();
@@ -74,17 +88,17 @@ namespace RC4Ever
 				byte i_value = _table[i];
 
 				byte j_previous_value = (byte)(j - i_value);
-				byte i_previous_value = (byte)(i-1);
+				byte i_previous_value = (byte)(i - 1);
 				l = (byte)(_table[i_previous_value] + _table[j_previous_value]);
 				byte k_previous_value = (byte)_table[l];
 
 				i = i_previous_value;
 				j = j_previous_value;
 				k = k_previous_value;
-								
+
 				return k;
 			}
-		}		
+		}
 
 		private void SwapIandJ()
 		{
@@ -93,47 +107,15 @@ namespace RC4Ever
 			_table[j] = l;
 		}
 
-		private void ThrowIfDisposed()
-		{
-			if (IsDisposed)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
-		}
-
 		public override string ToString()
 		{
 			ThrowIfDisposed();
-
-			StringBuilder result = new StringBuilder();
-			int q = 0;
-			while (q < TableSize)
-			{				
-				int r = 0;
-				while (r < 16)
-				{
-					if (r != 0)
-					{
-						result.Append('|');
-					}
-					result.Append(
-						string.Format("{0,3}", _table[q + r])
-						.PadLeft(4)
-						.PadRight(5)
-						);
-
-					r++;
-				}
-				result.AppendLine();
-				result.AppendLine();
-				q += 16;
-			}
-			
-			return result.ToString().TrimEnd();
+			return Visualizations.ToString(_table);
 		}
-		
+
 		public Bitmap ToBitmap()
 		{
+			ThrowIfDisposed();
 			return Visualizations.ToBitmap(_table);
 		}
 	}

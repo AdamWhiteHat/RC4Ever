@@ -3,62 +3,73 @@ using System.Security.Cryptography;
 
 namespace RC4Ever
 {
-    using RC4Ever.Key.Internal;
+	using Key.Internal;
 
-    public class ProtectedBuffer : IDisposable
+	public class ProtectedBuffer : IDisposable
 	{
 		public bool IsSecretDateSet { get; private set; }
 		public bool IsCoprimeSet { get; private set; }
 		public bool IsBeginOffsetSet { get; private set; }
 		public bool IsRoundsPerScramblSet { get; private set; }
 
-		private Byte[] Salt = null;
-		private Byte[] ProtectedMemory16 = null;
-		private bool IsDisposed = false;
+		public bool IsDisposed { get; private set; } = true;
 
-		private void CheckDisposed()
+		private byte[] _salt = null;
+		private byte[] _protectedMemory16 = null;
+
+		public ProtectedBuffer(byte[] password)
 		{
-			if (IsDisposed) { throw new ObjectDisposedException("ProtectedBuffer"); }
+			IsDisposed = false;
+
+			_salt = new byte[16];
+			_protectedMemory16 = new byte[16];
+
+			try
+			{
+				using (CryptoRNG rand = new CryptoRNG())
+				{
+					rand.NextBytes(_salt);
+				}
+
+				using (Rfc2898DeriveBytes derivedBytes = new Rfc2898DeriveBytes(password, _salt, 1000))
+				{
+					_protectedMemory16 = derivedBytes.GetBytes(_protectedMemory16.Length);
+				}
+			}
+			finally
+			{
+				CryptoRNG.ZeroBuffer(password);
+				ProtectedMemory.Protect(_protectedMemory16, MemoryProtectionScope.SameLogon);
+				ProtectedMemory.Protect(_salt, MemoryProtectionScope.SameLogon);
+			}
 		}
 
 		public void Dispose()
 		{
 			if (!IsDisposed)
 			{
+				UnprotectMem();
+				ProtectedMemory.Unprotect(_salt, MemoryProtectionScope.SameLogon);
+
 				IsDisposed = true;
-				ZeroBuffer(Salt);
-				ZeroBuffer(ProtectedMemory16);
+
+				CryptoRNG.ZeroBuffer(_protectedMemory16);
+				CryptoRNG.ZeroBuffer(_salt);
+
+				_protectedMemory16 = null;
+				_salt = null;
 			}
 		}
 
-		public ProtectedBuffer(Byte[] password)
+		private void ThrowIfDisposed()
 		{
-			Salt = new Byte[16];
-			ProtectedMemory16 = new Byte[16];
-			try
-			{
-				using (CryptoRNG rand = new CryptoRNG())
-				{
-					rand.NextBytes(Salt);
-				}
-
-				using (Rfc2898DeriveBytes derivedBytes = new Rfc2898DeriveBytes(password, Salt, 1000))
-				{
-					ProtectedMemory16 = derivedBytes.GetBytes(ProtectedMemory16.Length);
-					ZeroBuffer(password);
-				}
-			}
-			finally
-			{
-				ProtectedMemory.Protect(ProtectedMemory16, MemoryProtectionScope.SameProcess);
-				ProtectedMemory.Protect(Salt, MemoryProtectionScope.SameProcess);
-			}
-
-			IsDisposed = false;
+			if (IsDisposed) { throw new ObjectDisposedException(nameof(ProtectedBuffer)); }
 		}
 
-		private void SetBuffer(Byte[] value, int offset)
+		private void SetBuffer(byte[] value, int offset)
 		{
+			ThrowIfDisposed();
+
 			try
 			{
 				UnprotectMem();
@@ -66,113 +77,106 @@ namespace RC4Ever
 				int index = offset;
 				while (index < value.Length)
 				{
-					ProtectedMemory16[index] ^= value[index - offset];
+					_protectedMemory16[index] ^= value[index - offset];
 					index++;
 				}
 				index = 0;
-				offset = 0;
 			}
 			finally
 			{
+				offset = 0;
 				ProtectMem();
 			}
 		}
 
 		public void SetSecretDate(Int64 startDate)
 		{
-			CheckDisposed();
-			Byte[] temp = null;
+			ThrowIfDisposed();
+
+			byte[] temp = null;
 			try
 			{
 				temp = BitConverter.GetBytes(startDate);
 				SetBuffer(temp, 1);
+				IsSecretDateSet = true;
 			}
 			finally
 			{
-				startDate = Int64.MinValue;
-				ZeroBuffer(temp);
+				startDate = 0;
+				CryptoRNG.ZeroBuffer(temp);
 				temp = null;
-				IsSecretDateSet = true;
 			}
 		}
 
 		public void SetCoprime(UInt32 coprime)
 		{
-			CheckDisposed();
-			Byte[] temp = null;
+			ThrowIfDisposed();
+
+			byte[] temp = null;
 			try
 			{
 				temp = BitConverter.GetBytes(coprime);
 				SetBuffer(temp, 9);
-			}
-			finally
-			{
-				coprime = UInt32.MinValue;
-				ZeroBuffer(temp);
-				temp = null;
 				IsCoprimeSet = true;
 			}
+			finally
+			{
+				coprime = 0;
+				CryptoRNG.ZeroBuffer(temp);
+				temp = null;
+			}
 		}
 
-		public void SetBeginOffset(Byte beginOffset)
+		public void SetBeginOffset(byte beginOffset)
 		{
-			CheckDisposed();
-			Byte[] temp = null;
+			ThrowIfDisposed();
+
+			byte[] temp = null;
 			try
 			{
-				temp = new Byte[] { beginOffset };
+				temp = new byte[] { beginOffset };
 				SetBuffer(temp, 13);
+				IsBeginOffsetSet = true;
 			}
 			finally
 			{
-				beginOffset = Byte.MinValue;
-				ZeroBuffer(temp);
+				beginOffset = 0;
+				CryptoRNG.ZeroBuffer(temp);
 				temp = null;
-				IsBeginOffsetSet = true;				
 			}
 		}
 
-		public void SetRoundsPerScramble(Byte roundsPerScrample)
+		public void SetRoundsPerScramble(byte roundsPerScrample)
 		{
-			CheckDisposed();
-			Byte[] temp = null;
+			ThrowIfDisposed();
+
+			byte[] temp = null;
 			try
 			{
-				temp = new Byte[] { roundsPerScrample };
+				temp = new byte[] { roundsPerScrample };
 				SetBuffer(temp, 14);
-			}
-			finally
-			{
-				roundsPerScrample = Byte.MinValue;
-				ZeroBuffer(temp);
-				temp = null;
 				IsRoundsPerScramblSet = true;
 			}
-		}
-
-		public static void ZeroBuffer(Byte[] buffer)
-		{
-			if (buffer == null) { throw new ArgumentNullException("buffer"/*nameof(buffer)*/); }
-
-			int index = 0;
-			while (index < buffer.Length)
+			finally
 			{
-				buffer[index++] = Byte.MinValue;
+				roundsPerScrample = 0;
+				CryptoRNG.ZeroBuffer(temp);
+				temp = null;
 			}
-			index = 0;
-			buffer = null;
 		}
 
 		private void ProtectMem()
 		{
-			CheckDisposed();
-			ProtectedMemory.Protect(ProtectedMemory16, MemoryProtectionScope.SameProcess);
+			ThrowIfDisposed();
+
+			ProtectedMemory.Protect(_protectedMemory16, MemoryProtectionScope.SameLogon);
 		}
 
 		private void UnprotectMem()
 		{
-			CheckDisposed();
-			ProtectedMemory.Unprotect(ProtectedMemory16, MemoryProtectionScope.SameProcess);
+			ThrowIfDisposed();
+
+			ProtectedMemory.Unprotect(_protectedMemory16, MemoryProtectionScope.SameLogon);
 		}
 	}
 }

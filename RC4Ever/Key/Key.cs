@@ -3,80 +3,81 @@ using System.Collections.Generic;
 
 namespace RC4Ever.Key
 {
-    using RC4Ever.Key.Internal;
+	using Internal;
 
-    internal sealed class Key : IDisposable
+	internal sealed class Key : IDisposable
 	{
-		private bool isDisposed = true;
+		public bool IsDisposed { get; private set; } = true;
+		public static int TableSize = byte.MaxValue;
 
 		private ProtectedBuffer protectedBuffer = null;
 
-		public Key(byte[] passwordHash, Byte roundsPerScramble, Int64 secretStartDate)
+		public Key(byte[] passwordHash, byte roundsPerScramble, Int64 secretStartDate)
 		{
-			isDisposed = false;
+			IsDisposed = false;
 
 			protectedBuffer = new ProtectedBuffer(passwordHash);
 
 			protectedBuffer.SetSecretDate(secretStartDate);
 			protectedBuffer.SetRoundsPerScramble(roundsPerScramble);
 
-			roundsPerScramble = Byte.MinValue;
-			secretStartDate = Int64.MinValue;
+			roundsPerScramble = 0;
+			secretStartDate = 0;
 		}
 
 		public void Dispose()
 		{
-			if (!isDisposed)
+			if (!IsDisposed)
 			{
-				isDisposed = true;
+				IsDisposed = true;
+
+				protectedBuffer.Dispose();
+				protectedBuffer = null;
 			}
+		}
+		private void ThrowIfDisposed()
+		{
+			if (IsDisposed) { throw new ObjectDisposedException(nameof(Key)); }
 		}
 
 		internal void InitializeTable(ref byte[] table)
 		{
-			if (!isDisposed)
+			ThrowIfDisposed();
+
+			byte beginOffsetIndex = new byte();
+			using (CryptoRNG rand = new CryptoRNG())
 			{
-				Byte beginOffsetIndex = new Byte();
-				using (CryptoRNG rand = new CryptoRNG())
-				{
-					beginOffsetIndex = rand.Next(Byte.MaxValue);
-				}
-				protectedBuffer.SetBeginOffset(beginOffsetIndex);
-				int temp = beginOffsetIndex;
-				
-				int increment = 300;
-				while (Key.FindGCD(256, increment) != 1)
-				{
-					increment++;
-				}
-				protectedBuffer.SetCoprime((uint)increment);
-
-				// The large prime will just roll over. This is essentially just modular arithmetic
-				// By choosing a co-prime to 256, we ensure we get every value from 0-255 exactly once,
-				// and in a semi-uniformly distributed pattern (some co-primes are better than others)
-				int counter = 256;
-				List<byte> result = new List<byte>();
-				unchecked
-				{
-					while (counter-- > 0)
-					{
-						temp += increment;
-						if (temp > 255)
-						{
-							temp = temp % 256;
-						}
-						result.Add((byte)temp);
-					}
-				}
-
-				result.CopyTo(table);
-				result.Clear();
-				result = null;
-				beginOffsetIndex = Byte.MinValue;
-				increment = 0;
-				counter = -1;
-				temp = 0;
+				beginOffsetIndex = rand.Next(byte.MaxValue);
 			}
+			protectedBuffer.SetBeginOffset(beginOffsetIndex);
+			int temp = beginOffsetIndex;
+
+			int increment = 300;
+			while (FindGCD(TableSize, ++increment) != 1);
+
+			protectedBuffer.SetCoprime((uint)increment);
+
+			// The large prime will just roll over. This is essentially just modular arithmetic
+			// By choosing a co-prime to 256, we ensure we get every value from 0-255 exactly once,
+			// and in a semi-uniformly distributed pattern (some co-primes are better than others)			
+			int counter = -1;
+			unchecked
+			{
+				while (++counter < TableSize)
+				{
+					temp += increment;
+					if (temp > TableSize)
+					{
+						temp = temp % TableSize;
+					}
+					table[counter] = ((byte)temp);
+				}
+			}
+
+			beginOffsetIndex = 0;
+			increment = -1;
+			counter = -1;
+			temp = -1;
 		}
 
 		private static int FindGCD(int value1, int value2)

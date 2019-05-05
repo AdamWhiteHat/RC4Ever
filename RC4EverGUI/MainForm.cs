@@ -17,7 +17,7 @@ namespace RC4EverGUI
 			rounds = 0;
 		}
 
-		private void MainForm_Load(object sender, EventArgs e)
+		private void MainForm_Shown(object sender, EventArgs e)
 		{
 			table = new ProbablyInsecureTable("mYpaSSwoRd");
 			ShowTable();
@@ -74,8 +74,8 @@ namespace RC4EverGUI
 		{
 			List<byte> bytes = new List<byte>(amount+1);
 
-			int counter = 0;
-			while (counter++ < amount)
+			int counter = -1;
+			while (++counter < amount)
 			{				
 				bytes.Add(table.NextByte());
 				rounds++;
@@ -91,8 +91,8 @@ namespace RC4EverGUI
 		{
 			List<byte> bytes = new List<byte>(amount+1);
 
-			int counter = 0;
-			while (counter++ < amount)
+			int counter = -1;
+			while (++counter < amount)
 			{
 				bytes.Add(table.ReverseByte());
 				rounds--;
@@ -135,5 +135,6 @@ namespace RC4EverGUI
 				tbOutput.SelectAll();
 			}
 		}
-			}
+				
+	}
 }

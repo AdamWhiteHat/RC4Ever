@@ -3,16 +3,17 @@ using System.Security.Cryptography;
 
 namespace RC4Ever.Key.Internal
 {
-    public sealed class CryptoRNG : IDisposable
+	public sealed class CryptoRNG : IDisposable
 	{
-		private bool IsDisposed = false;
-		private byte[] rngBytes1 = new byte[1];
-		private RNGCryptoServiceProvider rngCsp;
+		public bool IsDisposed { get; private set; } = true;
+
+		private byte[] _rngBytes1 = new byte[1];
+		private RNGCryptoServiceProvider _rngCsp;
 
 		public CryptoRNG()
 		{
-			disposeCheck();
-			rngCsp = new RNGCryptoServiceProvider();
+			IsDisposed = false;
+			_rngCsp = new RNGCryptoServiceProvider();
 		}
 
 		public void Dispose()
@@ -20,67 +21,55 @@ namespace RC4Ever.Key.Internal
 			if (!IsDisposed)
 			{
 				IsDisposed = true;
-				if (rngCsp != null)
+
+				if (_rngBytes1 != null)
 				{
-					rngCsp.Dispose();
-					rngCsp = null;
+					ZeroBuffer(_rngBytes1);
+					_rngBytes1 = null;
 				}
-				
-				if (rngBytes1 != null)
+
+				if (_rngCsp != null)
 				{
-					ZeroBuffer(ref rngBytes1);
-					rngBytes1 = null;
+					_rngCsp.Dispose();
+					_rngCsp = null;
 				}
 			}
 		}
 
-		private void disposeCheck()
+		private void ThrowIfDisposed()
 		{
-			if (IsDisposed)
-			{
-				throw new ObjectDisposedException("CryptoRNG");
-			}
+			if (IsDisposed) { throw new ObjectDisposedException(nameof(CryptoRNG)); }
 		}
 
-		public static void ZeroBuffer(ref byte[] buffer)
+		public static void ZeroBuffer(byte[] buffer)
 		{
-			if (buffer == null)
+			if (buffer == null || buffer.Length <= 0) { return; }
+
+			int max = buffer.Length;
+			int index = -1;
+			while (++index < max)
 			{
-				return;
+				buffer[index] = byte.MinValue;
 			}
-			if (buffer.Length > 0)
-			{
-				int size = buffer.Length;
-				int counter = 0;
-				while (counter < size)
-				{
-					buffer[counter] = byte.MinValue;
-				}
-				size = 0;
-				counter = 0;
-			}
+			max = 0;
+			index = 0;
 			buffer = null;
 		}
 
 		public void NextBytes(byte[] buffer)
 		{
-			disposeCheck();
-			rngCsp.GetBytes(buffer);
-		}
-		
-		public byte Next()
-		{
-			disposeCheck();
-			rngCsp.GetBytes(rngBytes1);
-			return rngBytes1[0];
+			ThrowIfDisposed();
+			_rngCsp.GetBytes(buffer);
 		}
 
 		public byte Next(byte maxValue)
 		{
-			disposeCheck();
-			return (byte)(Next() % maxValue);
-		}
+			ThrowIfDisposed();
 
-		
+			byte[] result = new byte[1];
+			NextBytes(result);
+
+			return (byte)(result[0] % maxValue);
+		}
 	}
 }

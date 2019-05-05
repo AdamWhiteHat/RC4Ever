@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Protected")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Hewlett-Packard")]
+[assembly: AssemblyCompany("https://csharpcodewhisperer.blogspot.com")]
 [assembly: AssemblyProduct("Protected")]
-[assembly: AssemblyCopyright("Copyright © Hewlett-Packard 2016")]
+[assembly: AssemblyCopyright("Adam White")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

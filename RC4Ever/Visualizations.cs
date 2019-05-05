@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using System.Text;
 
 namespace RC4Ever
 {
@@ -11,14 +12,13 @@ namespace RC4Ever
 			int counter = 0;
 			Bitmap result = new Bitmap(17, 17);
 
-			while (counter < 256)
+			while (counter < 240)
 			{
-				x = 0;
-				while (x < 16)
+				x = -1;
+				while (++x < 16)
 				{
 					// For black & white image, use: Color.FromArgb(b, b, b)
 					result.SetPixel(x, y, CalculateColorFromByte(table[counter + x]));
-					x++;
 				}
 				y++;
 				counter += 16;
@@ -70,5 +70,35 @@ namespace RC4Ever
 		//{
 		//	return (value * 6) % byte.MaxValue;
 		//}
+
+		public static string ToString(byte[] _table)
+		{
+			StringBuilder result = new StringBuilder();
+			int q = 0;
+			int tableSize = _table.Length;
+			while (q < tableSize)
+			{
+				int r = 0;
+				while (r < 16)
+				{
+					if (r != 0)
+					{
+						result.Append('|');
+					}
+					result.Append(
+						string.Format("{0,3}", _table[q + r])
+						.PadLeft(4)
+						.PadRight(5)
+						);
+
+					r++;
+				}
+				result.AppendLine();
+				result.AppendLine();
+				q += 16;
+			}
+
+			return result.ToString().TrimEnd();
+		}
 	}
 }

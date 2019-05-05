@@ -1,99 +1,75 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using System.Drawing;
 using System.Collections.Generic;
 
 namespace RC4Ever
 {
-    using System.Drawing;
-    using RC4Ever.Key;
-    /// <summary>
-    /// An example of what a more serious attempt at a RC4 variant cipher would look like
-    /// </summary>
-    public class ProbablyInsecureTable : IDisposable
-	{
-		public static int TableSize = 256;	// Because we are using bytes		
-		
-		private static KeyContainer PrivateKey;
+	using Key;
+	using Key.Internal;
 
-		private bool isDisposed = true;
-		private byte[] permutationTable;
+	/// <summary>
+	/// An example of what a more serious attempt at a RC4 variant cipher would look like
+	/// </summary>
+	public class ProbablyInsecureTable : IDisposable
+	{
+		public bool IsDisposed { get; private set; } = true;
+		public static int TableSize = byte.MaxValue;  // Because we are using bytes		
 
 		private byte k = 0;
 		private byte i = 0;
-		private byte j = 0;		
+		private byte j = 0;
 		private byte l = 0;
+
+		private byte[] _table = null;
+		private static KeyContainer PrivateKey = null;
 
 		public ProbablyInsecureTable(string password)
 		{
-			isDisposed = false;
+			IsDisposed = false;
+
+			i = 0; j = 0; k = 0; l = 0;
 
 			PrivateKey = new KeyContainer(
-				passwordHash:  Encoding.ASCII.GetBytes(password),
+				passwordHash: Encoding.ASCII.GetBytes(password),
 				roundsPerScramble: 61,
 				secretStartDate: DateTime.UtcNow.ToFileTimeUtc()
 			);
 
-			permutationTable = new byte[TableSize];
-
-			PrivateKey.InitializeSequence(ref permutationTable);
+			_table = new byte[TableSize + 1];
+			PrivateKey.InitializeSequence(ref _table);
 
 			ShuffleTable();// Finish initializing the table by shuffling it			
-		}
-
-		public ProbablyInsecureTable(KeyContainer privateKey)
-		{
-			isDisposed = false;
-			PrivateKey = privateKey;			
-			permutationTable = new byte[TableSize];
-
-			privateKey.InitializeSequence(ref permutationTable);						
-			ShuffleTable();// Finish initializing the table by shuffling it			
-		}
-
-		public ProbablyInsecureTable(byte[] savedTableState, KeyContainer privateKey)
-		{
-			isDisposed = false;
-			PrivateKey = privateKey;
-			permutationTable = savedTableState;
-
-			ShuffleTable();						
-		}
-
-		public void Reset()
-		{
-			this.Dispose(); // We do not want to be able to recreate the starting state so trivially
 		}
 
 		public void Dispose()
 		{
-			if (!isDisposed)
+			if (!IsDisposed)
 			{
-				isDisposed = true;
-				// Private key first
-				PrivateKey.Dispose();
-				PrivateKey = null;
+				IsDisposed = true;
 
 				i = 0;
 				j = 0;
 				k = 0;
 				l = 0;
-				permutationTable = Enumerable.Repeat<byte>(byte.MaxValue, TableSize + 1).ToArray();
-				permutationTable = null;
+
+				CryptoRNG.ZeroBuffer(_table);
+				_table = null;
+
+				PrivateKey.Dispose();
+				PrivateKey = null;
 			}
 		}
 
-		private void DisposeCheck()
+		private void ThrowIfDisposed()
 		{
-			if (isDisposed)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
+			if (IsDisposed) { throw new ObjectDisposedException(nameof(ProbablyInsecureTable)); }
 		}
-		
+
 		private void ShuffleTable()
 		{
-			DisposeCheck();
+			ThrowIfDisposed();
 
 			while (!PrivateKey.TakeNext())
 			{
@@ -106,21 +82,21 @@ namespace RC4Ever
 
 		public byte Hash(byte plainTextIn)
 		{
-			DisposeCheck();
+			ThrowIfDisposed();
 
 			ShuffleTable();
 
-			byte result = 0;
 			if (MoveNext())
 			{
-				result = (byte)(plainTextIn ^ k);
+				return (byte)(plainTextIn ^ k);
 			}
-			return result;
+
+			return default(byte);
 		}
 
 		public string Hash(string plainText)
 		{
-			DisposeCheck();
+			ThrowIfDisposed();
 
 			List<byte> cypherBytes = new List<byte>();
 			foreach (byte byteIn in Encoding.ASCII.GetBytes(plainText))
@@ -130,7 +106,7 @@ namespace RC4Ever
 
 			if (cypherBytes.Count % 2 != 0)
 			{
-				throw new ArrayTypeMismatchException("cypherBytes.Count % 2 != 0"); 
+				throw new ArrayTypeMismatchException("cypherBytes.Count % 2 != 0");
 			}
 
 			return Encoding.ASCII.GetString(cypherBytes.ToArray());
@@ -138,44 +114,54 @@ namespace RC4Ever
 
 		public byte NextByte()
 		{
+			ThrowIfDisposed();
+
 			if (MoveNext())
 			{
 				return k;
 			}
+
 			return default(byte);
 		}
 
 		public byte ReverseByte()
 		{
+			ThrowIfDisposed();
 			throw new NotImplementedException();
 		}
-		
+
 		public bool MoveNext()
 		{
-			if (isDisposed)
-			{
-				return false;
-			}
+			ThrowIfDisposed();
+
 			// Just roll over on overflow. This is essentially mod 256, since everything is a byte
 			unchecked
 			{
 				i++;
-				j = (byte)(j + permutationTable[i]);
+				j = (byte)(j + _table[i]);
 
-				l = permutationTable[i];
-				permutationTable[i] = permutationTable[j];
-				permutationTable[j] = l;
+				l = _table[i];
+				_table[i] = _table[j];
+				_table[j] = l;
 
-				l = (byte)(permutationTable[i] + permutationTable[j]);
+				l = (byte)(_table[i] + _table[j]);
 
-				k = permutationTable[l];
+				k = _table[l];
 			}
+
 			return true;
+		}
+
+		public override string ToString()
+		{
+			ThrowIfDisposed();
+			return Visualizations.ToString(_table);
 		}
 
 		public Bitmap ToBitmap()
 		{
-			return Visualizations.ToBitmap(permutationTable);
+			ThrowIfDisposed();
+			return Visualizations.ToBitmap(_table);
 		}
 	}
 }

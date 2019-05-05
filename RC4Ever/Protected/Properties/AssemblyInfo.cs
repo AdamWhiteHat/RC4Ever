@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("TestRC4EVER")]
+[assembly: AssemblyTitle("Protected")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("https://csharpcodewhisperer.blogspot.com")]
-[assembly: AssemblyProduct("TestRC4EVER")]
+[assembly: AssemblyProduct("Protected")]
 [assembly: AssemblyCopyright("Adam White")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("63c31fb8-1662-498d-ba41-abfbb1ac7222")]
+[assembly: Guid("9f827383-b64f-49d5-8840-2a5a84b4f177")]
 
 // Version information for an assembly consists of the following four values:
 //

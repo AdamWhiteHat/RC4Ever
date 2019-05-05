@@ -1,47 +1,99 @@
 ﻿using System;
-using System.Linq;
-using System.Text;
 using System.Collections.Generic;
 
 namespace RC4Ever.Key
 {
-	internal class Key : IDisposable
+	using Internal;
+
+	internal sealed class Key : IDisposable
 	{
-		// TODO:
-		// * Use System.Security.Cryptography.RNGCryptoServiceProvider to create a bytes that will be xor'ed with below variables 
-		//   so as not to store the key variables in the clear.
-		// * Use System.Security.Cryptography.ProtectedMemory.Protect to lock access to key variables and xor data.
+		public bool IsDisposed { get; private set; } = true;
+		public static int TableSize = byte.MaxValue;
 
-		internal int Coprime;
-		internal int RoundsPerScramble;
-		internal byte BeginOffsetIndex;
-		internal byte[] HashedPasswordPhrase;
-		internal DateTime SecretStartDate;
-		//
-		private bool isDisposed = true;
+		private ProtectedBuffer protectedBuffer = null;
 
-		public Key(int coprime, byte beginOffsetIndex, string passwordHash, int roundsPerScramble, DateTime secretStartDate)
+		public Key(byte[] passwordHash, byte roundsPerScramble, Int64 secretStartDate)
 		{
-			isDisposed = false;
-			Coprime = coprime;
-			SecretStartDate = secretStartDate;
-			BeginOffsetIndex = beginOffsetIndex;
-			RoundsPerScramble = roundsPerScramble;
-			HashedPasswordPhrase = Encoding.ASCII.GetBytes(passwordHash);
+			IsDisposed = false;
+
+			protectedBuffer = new ProtectedBuffer(passwordHash);
+
+			protectedBuffer.SetSecretDate(secretStartDate);
+			protectedBuffer.SetRoundsPerScramble(roundsPerScramble);
+
+			roundsPerScramble = 0;
+			secretStartDate = 0;
 		}
 
 		public void Dispose()
 		{
-			if (!isDisposed)
+			if (!IsDisposed)
 			{
-				isDisposed = true;
-				Coprime = int.MaxValue;
-				RoundsPerScramble = int.MaxValue;
-				BeginOffsetIndex = byte.MaxValue;
-				SecretStartDate = DateTime.MaxValue;
-				HashedPasswordPhrase = Enumerable.Repeat<byte>(byte.MaxValue, HashedPasswordPhrase.Length + 1).ToArray();
-				HashedPasswordPhrase = null;
+				IsDisposed = true;
+
+				protectedBuffer.Dispose();
+				protectedBuffer = null;
 			}
+		}
+		private void ThrowIfDisposed()
+		{
+			if (IsDisposed) { throw new ObjectDisposedException(nameof(Key)); }
+		}
+
+		internal void InitializeTable(ref byte[] table)
+		{
+			ThrowIfDisposed();
+
+			byte beginOffsetIndex = new byte();
+			using (CryptoRNG rand = new CryptoRNG())
+			{
+				beginOffsetIndex = rand.Next(byte.MaxValue);
+			}
+			protectedBuffer.SetBeginOffset(beginOffsetIndex);
+			int temp = beginOffsetIndex;
+
+			int increment = 300;
+			while (FindGCD(TableSize, ++increment) != 1);
+
+			protectedBuffer.SetCoprime((uint)increment);
+
+			// The large prime will just roll over. This is essentially just modular arithmetic
+			// By choosing a co-prime to 256, we ensure we get every value from 0-255 exactly once,
+			// and in a semi-uniformly distributed pattern (some co-primes are better than others)			
+			int counter = -1;
+			unchecked
+			{
+				while (++counter < TableSize)
+				{
+					temp += increment;
+					if (temp > TableSize)
+					{
+						temp = temp % TableSize;
+					}
+					table[counter] = ((byte)temp);
+				}
+			}
+
+			beginOffsetIndex = 0;
+			increment = -1;
+			counter = -1;
+			temp = -1;
+		}
+
+		private static int FindGCD(int value1, int value2)
+		{
+			while (value1 != 0 && value2 != 0)
+			{
+				if (value1 > value2)
+				{
+					value1 %= value2;
+				}
+				else
+				{
+					value2 %= value1;
+				}
+			}
+			return Math.Max(value1, value2);
 		}
 	}
 }

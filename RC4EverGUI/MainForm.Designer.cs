@@ -206,7 +206,7 @@
 			this.DoubleBuffered = true;
 			this.Name = "MainForm";
 			this.Text = "View RC4 Table";
-			this.Load += new System.EventHandler(this.MainForm_Load);
+			this.Shown += new System.EventHandler(this.MainForm_Shown);
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();

@@ -1,78 +1,70 @@
 ﻿using System;
 using System.Linq;
-using System.Text;
-using System.Collections.Generic;
 
 namespace RC4Ever.Key
 {
-	public class KeyContainer : IDisposable
+	using Internal;
+
+	public sealed class KeyContainer : IDisposable
 	{
-		private Key _key;
-		private int _skipCounter;
-		private bool isDisposed = true;
-		
-		public KeyContainer(int coprimeTo256, byte beginOffsetIndex, string passwordHash, int roundsPerScramble, DateTime secretStartDate)
+		public bool IsDisposed { get; private set; } = true;
+
+		private Key _key = null;
+		private int _skipCounter = -1;
+		private static int _roundsPerScramble = -1;
+
+		public KeyContainer(byte[] passwordHash, byte roundsPerScramble, Int64 secretStartDate)
 		{
-			isDisposed = false;
-			_key = new Key(coprimeTo256, beginOffsetIndex, passwordHash, roundsPerScramble, secretStartDate);
-			_skipCounter = roundsPerScramble;
+			IsDisposed = false;
+			_roundsPerScramble = roundsPerScramble;
+			_skipCounter = _roundsPerScramble;
+			_key = new Key(passwordHash, roundsPerScramble, secretStartDate);
+
+			CryptoRNG.ZeroBuffer(passwordHash);
+			passwordHash = null;
+			roundsPerScramble = byte.MaxValue;
+			secretStartDate = Int64.MaxValue;
 		}
 
 		public void Dispose()
 		{
-			if (!isDisposed)
+			if (!IsDisposed)
 			{
-				isDisposed = true;
+				IsDisposed = true;
+
+				_skipCounter = 0;
+				_roundsPerScramble = 0;
+
 				_key.Dispose();
 				_key = null;
 			}
 		}
 
-		public bool TakeNext()
+		private void ThrowIfDisposed()
 		{
-			if (!isDisposed)
-			{
-				_skipCounter--;
-
-				if (_skipCounter < 1)
-				{
-					_skipCounter = _key.RoundsPerScramble;
-					return true;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			return false;
+			if (IsDisposed) { throw new ObjectDisposedException(nameof(KeyContainer)); }
 		}
 
-		public IEnumerable<byte> InitializeSequence()
+		public bool TakeNext()
 		{
-			if (!isDisposed)
-			{
-				int temp = 0;
-				byte index = 0;
-				int counter = 256;
+			ThrowIfDisposed();
 
-				// The large prime will just roll over. This is essentially just modular arithmetic
-				// By choosing a co-prime to 256, we ensure we get every value from 0-255 exactly once,
-				// and in a semi-uniformly distributed pattern (some co-primes are better than others)
-				unchecked
-				{
-					while (counter-- > 0)
-					{
-						temp = index + _key.Coprime;
-						if (temp > 255)
-						{
-							temp = temp % 256;
-						}
-						index = (byte)temp;
-						yield return index;
-					}
-				}
+			_skipCounter--;
+			if (_skipCounter < 1)
+			{
+				_skipCounter = _roundsPerScramble;
+				return true;
 			}
-			yield break;
+			else
+			{
+				return false;
+			}
+		}
+
+		public void InitializeSequence(ref byte[] table)
+		{
+			ThrowIfDisposed();
+			_key.InitializeTable(ref table);
 		}
 	}
 }

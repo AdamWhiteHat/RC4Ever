@@ -15,7 +15,7 @@ namespace RC4Ever
 	public class ProbablyInsecureTable : IDisposable
 	{
 		public bool IsDisposed { get; private set; } = true;
-		public static int TableSize = byte.MaxValue;  // Because we are using bytes		
+		public static int TableSize = byte.MaxValue+1;  // Because we are using bytes		
 
 		private byte k = 0;
 		private byte i = 0;
@@ -37,7 +37,7 @@ namespace RC4Ever
 				secretStartDate: DateTime.UtcNow.ToFileTimeUtc()
 			);
 
-			_table = new byte[TableSize + 1];
+			_table = new byte[TableSize];
 			PrivateKey.InitializeSequence(ref _table);
 
 			ShuffleTable();// Finish initializing the table by shuffling it			

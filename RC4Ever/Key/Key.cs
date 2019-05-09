@@ -8,7 +8,7 @@ namespace RC4Ever.Key
 	internal sealed class Key : IDisposable
 	{
 		public bool IsDisposed { get; private set; } = true;
-		public static int TableSize = byte.MaxValue;
+		public static int TableSize = byte.MaxValue+1;
 
 		private ProtectedBuffer protectedBuffer = null;
 
@@ -53,17 +53,17 @@ namespace RC4Ever.Key
 			int temp = beginOffsetIndex;
 
 			int increment = 300;
-			while (FindGCD(TableSize, ++increment) != 1);
+			while (FindGCD(TableSize, (++increment)) != 1);
 
 			protectedBuffer.SetCoprime((uint)increment);
 
 			// The large prime will just roll over. This is essentially just modular arithmetic
 			// By choosing a co-prime to 256, we ensure we get every value from 0-255 exactly once,
 			// and in a semi-uniformly distributed pattern (some co-primes are better than others)			
-			int counter = -1;
+			int counter = 0;
 			unchecked
 			{
-				while (++counter < TableSize)
+				while (counter < TableSize)
 				{
 					temp += increment;
 					if (temp > TableSize)
@@ -71,6 +71,7 @@ namespace RC4Ever.Key
 						temp = temp % TableSize;
 					}
 					table[counter] = ((byte)temp);
+					counter++;
 				}
 			}
 

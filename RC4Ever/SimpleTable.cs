@@ -14,7 +14,7 @@ namespace RC4Ever
 	public class SimpleTable : IDisposable
 	{
 		public bool IsDisposed { get; private set; }
-		public static int TableSize = byte.MaxValue;  // Because we are using bytes
+		public static int TableSize = byte.MaxValue+1;  // Because we are using bytes
 
 		private byte i = 0;
 		private byte j = 0;
@@ -25,12 +25,10 @@ namespace RC4Ever
 
 		public SimpleTable()
 		{
-			IsDisposed = false;
-
 			i = 0; j = 0; k = 0; l = 0;
 
-			_table = new byte[TableSize + 1];
-			CryptoRNG.ZeroBuffer(_table);
+			_table = Enumerable.Range(0, TableSize).Select(b => (byte)b).ToArray();
+			IsDisposed = false;
 		}
 
 		public void Dispose()
@@ -65,8 +63,8 @@ namespace RC4Ever
 
 				SwapIandJ();
 
-				byte[] shuffledTable = BitShuffle.Interleave(_table);
-				_table = shuffledTable;
+				//byte[] shuffledTable = BitShuffle.Interleave(_table);
+				//_table = shuffledTable;
 
 				l = (byte)(_table[i] + _table[j]);
 				k = (byte)_table[l]; //K = S[ S[i] + S[j] ]

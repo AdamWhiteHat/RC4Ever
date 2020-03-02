@@ -7,6 +7,7 @@ namespace RC4Ever
 		public static Color[] ColorPalette = new Color[]
 		{
 			Color.FromArgb(  0,  0,  0),
+			Color.FromArgb(  2,  3,  3),
 			Color.FromArgb( 11,  8,  9),
 			Color.FromArgb( 18, 12, 14),
 			Color.FromArgb( 23, 15, 18),

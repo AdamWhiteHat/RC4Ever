@@ -46,10 +46,11 @@ namespace RC4Ever.Key.Internal
 			if (buffer == null || buffer.Length <= 0) { return; }
 
 			int max = buffer.Length;
-			int index = -1;
-			while (++index < max)
+			int index = 0;
+			while (index < max)
 			{
 				buffer[index] = byte.MinValue;
+				index++;
 			}
 			max = 0;
 			index = 0;

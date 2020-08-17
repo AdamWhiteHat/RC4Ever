@@ -14,7 +14,7 @@ namespace RC4Ever
 	public class SimpleTable : IDisposable
 	{
 		public bool IsDisposed { get; private set; }
-		public static int TableSize = byte.MaxValue+1;  // Because we are using bytes
+		public static int TableSize = byte.MaxValue + 1;  // Because we are using bytes
 
 		private byte i = 0;
 		private byte j = 0;
@@ -25,7 +25,10 @@ namespace RC4Ever
 
 		public SimpleTable()
 		{
-			i = 0; j = 0; k = 0; l = 0;
+			i = 0;
+			j = 0;
+			k = 0;
+			l = 0;
 
 			_table = Enumerable.Range(0, TableSize).Select(b => (byte)b).ToArray();
 			IsDisposed = false;
@@ -67,7 +70,7 @@ namespace RC4Ever
 				//_table = shuffledTable;
 
 				l = (byte)(_table[i] + _table[j]);
-				k = (byte)_table[l]; //K = S[ S[i] + S[j] ]
+				k = _table[l]; //K = S[ S[i] + S[j] ]
 
 				return k;
 			}
@@ -79,13 +82,9 @@ namespace RC4Ever
 
 			unchecked // Just roll over on overflow. This is essentially mod 256, since everything is a byte
 			{
-				List<byte> tableList = _table.ToList();
-
 				SwapIandJ();
 
-				byte i_value = _table[i];
-
-				byte j_previous_value = (byte)(j - i_value);
+				byte j_previous_value = (byte)(j - _table[i]);
 				byte i_previous_value = (byte)(i - 1);
 				l = (byte)(_table[i_previous_value] + _table[j_previous_value]);
 				byte k_previous_value = (byte)_table[l];

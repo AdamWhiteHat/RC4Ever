@@ -75,9 +75,10 @@ namespace RC4Ever
 				UnprotectMem();
 
 				int index = offset;
-				while (index < value.Length)
+				int maxIndex = offset + (value.Length - 1);
+				while (index <= maxIndex)
 				{
-					_protectedMemory16[index] ^= value[index - offset];
+					_protectedMemory16[index] = (byte)(_protectedMemory16[index] ^ value[(index - offset)]);
 					index++;
 				}
 				index = 0;

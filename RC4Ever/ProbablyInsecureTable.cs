@@ -14,8 +14,9 @@ namespace RC4Ever
 	/// </summary>
 	public class ProbablyInsecureTable : IDisposable
 	{
+		public byte Current { get { return k; } }
 		public bool IsDisposed { get; private set; } = true;
-		public static int TableSize = byte.MaxValue+1;  // Because we are using bytes		
+		public static int TableSize = byte.MaxValue + 1;  // Because we are using bytes		
 
 		private byte k = 0;
 		private byte i = 0;
@@ -67,6 +68,11 @@ namespace RC4Ever
 			if (IsDisposed) { throw new ObjectDisposedException(nameof(ProbablyInsecureTable)); }
 		}
 
+		public void Reset()
+		{
+			throw new NotImplementedException();
+		}
+
 		private void ShuffleTable()
 		{
 			ThrowIfDisposed();
@@ -75,7 +81,7 @@ namespace RC4Ever
 			{
 				if (!MoveNext())
 				{
-					break;
+					throw new InvalidOperationException();
 				}
 			}
 		}
@@ -88,10 +94,12 @@ namespace RC4Ever
 
 			if (MoveNext())
 			{
-				return (byte)(plainTextIn ^ k);
+				return (byte)(plainTextIn ^ Current);
 			}
-
-			return default(byte);
+			else
+			{
+				throw new InvalidOperationException();
+			}
 		}
 
 		public string Hash(string plainText)
@@ -118,10 +126,12 @@ namespace RC4Ever
 
 			if (MoveNext())
 			{
-				return k;
+				return Current;
 			}
-
-			return default(byte);
+			else
+			{
+				throw new InvalidOperationException();
+			}
 		}
 
 		public byte ReverseByte()
@@ -134,22 +144,34 @@ namespace RC4Ever
 		{
 			ThrowIfDisposed();
 
-			// Just roll over on overflow. This is essentially mod 256, since everything is a byte
-			unchecked
+			try
 			{
-				i++;
-				j = (byte)(j + _table[i]);
+				// Just roll over on overflow. This is essentially mod 256, since everything is a byte
+				unchecked
+				{
+					i++;
+					j = (byte)(j + _table[i]);
 
-				l = _table[i];
-				_table[i] = _table[j];
-				_table[j] = l;
+					SwapIandJ();
 
-				l = (byte)(_table[i] + _table[j]);
+					l = (byte)(_table[i] + _table[j]);
 
-				k = _table[l];
+					k = _table[l];
+				}
+
+				return true;
 			}
+			catch
+			{
+				return false;
+			}
+		}
 
-			return true;
+		private void SwapIandJ()
+		{
+			l = _table[i];
+			_table[i] = _table[j];
+			_table[j] = l;
 		}
 
 		public override string ToString()

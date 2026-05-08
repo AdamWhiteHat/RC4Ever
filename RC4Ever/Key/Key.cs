@@ -55,7 +55,7 @@ namespace RC4Ever.Key
 			int increment = 300;
 			while (FindGCD(TableSize, (++increment)) != 1);
 
-			protectedBuffer.SetCoprime((uint)increment);
+			protectedBuffer.SetCoPrime((uint)increment);
 
 			// The large prime will just roll over. This is essentially just modular arithmetic
 			// By choosing a co-prime to 256, we ensure we get every value from 0-255 exactly once,

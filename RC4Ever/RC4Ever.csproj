@@ -47,9 +47,10 @@
     <Compile Include="ColorPalette.cs" />
     <Compile Include="Key\Key.cs" />
     <Compile Include="Key\KeyContainer.cs" />
-    <Compile Include="ProbablyInsecureTable.cs" />
+    <Compile Include="Tables\ProbablyInsecureTable.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimpleTable.cs" />
+    <Compile Include="Tables\SimpleTable.cs" />
+    <Compile Include="Tables\ITable.cs" />
     <Compile Include="Visualizations.cs" />
   </ItemGroup>
   <ItemGroup>
